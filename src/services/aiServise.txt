@@ -1,0 +1,314 @@
+import { UserData, Career, PersonalityTestResult, SkillGapResult, CareerComparisonData } from "@/types";
+
+// Interfaces for AI responses
+interface AiCareerSuggestion {
+  title: string;
+  description: string;
+  match: string;
+  resources: {
+    name: string;
+    url: string;
+    type: string;
+  }[];
+  opportunities?: {
+    title: string;
+    organization: string;
+    location: string;
+    url: string;
+    type: string;
+    deadline?: string;
+  }[];
+  requiredSkills?: string[];
+  salaryRange?: string;
+  growthProspects?: string;
+  educationRequirements?: string;
+}
+
+interface AiResponse {
+  careers: AiCareerSuggestion[];
+}
+
+// Function to format user data for prompt
+const formatUserDataForPrompt = (userData: UserData): string => {
+  return `
+    Name: ${userData.name}
+    Age: ${userData.age}
+    Location: ${userData.location}
+    Education: ${userData.education}
+    Subjects: ${userData.subjects.join(', ')}
+    Interests: ${userData.interests.join(', ')}
+    Technical Skills: ${userData.skills.technical.join(', ')}
+    Soft Skills: ${userData.skills.soft.join(', ')}
+    Work Preferences:
+    - Environment: ${userData.preferences.environment}
+    - Work Style: ${userData.preferences.workStyle}
+    - Pace: ${userData.preferences.pace}
+  `;
+};
+
+// Function to generate the prompt for the AI
+const generateAiPrompt = (userData: UserData): string => {
+  const formattedUserData = formatUserDataForPrompt(userData);
+  
+  return `
+    Based on the following user profile, suggest 3-5 personalized career paths. For each career, include:
+    1. A job title
+    2. A brief description of the career
+    3. Why it's a good match for this person
+    4. Learning resources (courses, books, websites, tools)
+    5. Job or study opportunities
+    6. Required skills for this career
+    7. Typical salary range
+    8. Growth prospects in this field
+    9. Educational requirements
+
+    User Profile:
+    ${formattedUserData}
+
+    Return your response in the following JSON format:
+    {
+      "careers": [
+        {
+          "title": "Career Title",
+          "description": "Brief description of the career",
+          "match": "Why this is a good match for the user",
+          "resources": [
+            {"name": "Resource Name", "url": "https://example.com", "type": "course/book/website/tool"}
+          ],
+          "opportunities": [
+            {"title": "Job/Study Title", "organization": "Organization Name", "location": "Location", "url": "https://example.com", "type": "job/study", "deadline": "YYYY-MM-DD (optional)"}
+          ],
+          "requiredSkills": ["Skill 1", "Skill 2", "Skill 3"],
+          "salaryRange": "Salary range description",
+          "growthProspects": "Growth prospects description",
+          "educationRequirements": "Education requirements description"
+        }
+      ]
+    }
+  `;
+};
+
+// Function to call Grok API
+const callGrokApi = async (prompt: string) => {
+  const API_KEY = "xai-yhbV1vZkZwyT3VWIWJdogJqt78mKh3oHB8I91MlOd7hR0eDNmWIbdC3nrM9d6c0zjX2K6gf0SdzeSgov";
+  const url = "https://api.x.ai/v1/chat/completions";
+  
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: "grok-1",
+      messages: [
+        { role: "system", content: "You are a helpful AI assistant." },
+        { role: "user", content: prompt }
+      ],
+      max_tokens: 2048,
+      temperature: 0.2,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    console.error("Grok API error details:", errorData);
+    throw new Error(`API request failed with status ${response.status}: ${JSON.stringify(errorData)}`);
+  }
+
+  const data = await response.json();
+  return data.choices[0].message.content;
+};
+
+export const getAiCareerSuggestions = async (userData: UserData): Promise<Career[]> => {
+  try {
+    const prompt = generateAiPrompt(userData);
+    const textResponse = await callGrokApi(prompt);
+    
+    console.log("Text response:", textResponse); // Log the text response
+    
+    const jsonStart = textResponse.indexOf('{');
+    const jsonEnd = textResponse.lastIndexOf('}') + 1;
+    const jsonStr = textResponse.substring(jsonStart, jsonEnd);
+    
+    console.log("Extracted JSON:", jsonStr); // Log the extracted JSON
+    
+    const aiResponse: AiResponse = JSON.parse(jsonStr);
+    
+    // Convert AI response to our Career type
+    return aiResponse.careers.map((career, index) => ({
+      id: 1000 + index,
+      title: career.title,
+      description: career.description,
+      match: career.match,
+      resources: career.resources.map(resource => ({
+        name: resource.name,
+        url: resource.url,
+        type: resource.type as "course" | "tool" | "book" | "website",
+      })),
+      opportunities: career.opportunities?.map(opp => ({
+        title: opp.title,
+        organization: opp.organization,
+        location: opp.location,
+        url: opp.url,
+        type: opp.type as "job" | "study",
+        deadline: opp.deadline,
+      })),
+      icon: "Cpu",
+      color: ["blue", "purple", "teal", "pink", "orange"][index % 5] as "blue" | "purple" | "teal" | "pink" | "orange",
+      requiredSkills: career.requiredSkills,
+      salaryRange: career.salaryRange,
+      growthProspects: career.growthProspects,
+      educationRequirements: career.educationRequirements,
+    }));
+  } catch (error) {
+    console.error("Error fetching AI career suggestions:", error);
+    
+    // Fallback to sample data if API fails
+    return [
+      {
+        id: 1001,
+        title: "UX/UI Designer",
+        description: "UX/UI Designers create intuitive, aesthetically pleasing digital interfaces by combining visual design skills with user experience research.",
+        match: "Your combination of technical skills in web development and graphic design, plus interests in art and technology make this an ideal career path. Your critical thinking skills will help you analyze user needs effectively.",
+        resources: [
+          { name: "Interaction Design Foundation", url: "https://www.interaction-design.org/", type: "website" },
+          { name: "UI/UX Design Bootcamp", url: "https://www.coursera.org/professional-certificates/google-ux-design", type: "course" },
+          { name: "Don't Make Me Think by Steve Krug", url: "https://www.amazon.com/Dont-Make-Think-Revisited-Usability/dp/0321965515/", type: "book" }
+        ],
+        icon: "Palette",
+        color: "blue",
+        opportunities: [
+          {
+            title: "Junior UX Designer",
+            organization: "Tech Innovations Inc.",
+            location: "Remote",
+            url: "https://example.com/jobs/ux-designer",
+            type: "job"
+          },
+          {
+            title: "UI/UX Design Certificate",
+            organization: "Google",
+            location: "Online",
+            url: "https://www.coursera.org/professional-certificates/google-ux-design",
+            type: "study"
+          }
+        ],
+        requiredSkills: ["UI Design", "User Research", "Wireframing", "Prototyping", "Visual Design"],
+        salaryRange: "$60,000 - $110,000 per year depending on experience and location",
+        growthProspects: "High demand field with 13% growth projected over the next decade",
+        educationRequirements: "Bachelor's degree in Design, HCI, or related field; bootcamp certificates also accepted"
+      },
+      // Other fallback careers remain the same
+    ];
+  }
+};
+
+// Function to analyze the skill gap
+export const getSkillGapAnalysis = async (userData: UserData, careerTitle: string): Promise<SkillGapResult> => {
+  try {
+    const userSkills = [...userData.skills.technical, ...userData.skills.soft];
+    
+    const prompt = `
+      Analyze the skill gap for this user who wants to pursue a career as a "${careerTitle}".
+      
+      User's current skills: ${userSkills.join(', ')}
+      User's education: ${userData.education}
+      User's interests: ${userData.interests.join(', ')}
+      
+      Please identify:
+      1. The key skills missing that would be required for this career
+      2. Recommended learning resources to acquire these skills
+      
+      Return your response in the following JSON format:
+      {
+        "missingSkills": ["Skill 1", "Skill 2", "Skill 3"],
+        "learningResources": [
+          {"name": "Resource Name", "url": "https://example.com", "type": "course/book/website/tool"}
+        ]
+      }
+    `;
+    
+    const textResponse = await callGrokApi(prompt);
+    
+    const jsonStart = textResponse.indexOf('{');
+    const jsonEnd = textResponse.lastIndexOf('}') + 1;
+    const jsonStr = textResponse.substring(jsonStart, jsonEnd);
+    
+    return JSON.parse(jsonStr);
+  } catch (error) {
+    console.error("Error fetching skill gap analysis:", error);
+    
+    // Fallback data
+    return {
+      missingSkills: ["Critical Thinking", "Problem Solving", "Time Management", "Teamwork", "Communication"],
+      learningResources: [
+        { 
+          name: "LinkedIn Learning - Critical Thinking", 
+          url: "https://www.linkedin.com/learning/critical-thinking", 
+          type: "course" 
+        },
+        { 
+          name: "Coursera - Problem Solving Skills", 
+          url: "https://www.coursera.org/learn/problem-solving", 
+          type: "course" 
+        },
+        { 
+          name: "Time Management for Students", 
+          url: "https://www.mindtools.com/pages/article/newHTE_88.htm", 
+          type: "website" 
+        }
+      ]
+    };
+  }
+};
+
+// Function to get personality test
+export const getPersonalityTest = async (answers: Record<string, string>): Promise<PersonalityTestResult> => {
+  try {
+    const answersText = Object.entries(answers)
+      .map(([question, answer]) => `Question: ${question}\nAnswer: ${answer}`)
+      .join('\n\n');
+    
+    const prompt = `
+      Analyze these personality test answers and provide a personality profile:
+      
+      ${answersText}
+      
+      Based on these answers, determine:
+      1. The personality type (similar to MBTI but simplified)
+      2. A description of this personality type
+      3. Career strengths for this personality
+      4. Potential weaknesses or challenges
+      5. Suitable career paths that match this personality
+      
+      Return your response in the following JSON format:
+      {
+        "type": "Personality type (e.g., 'Analytical Thinker')",
+        "description": "Description of the personality type",
+        "strengths": ["Strength 1", "Strength 2", "Strength 3"],
+        "weaknesses": ["Weakness 1", "Weakness 2", "Weakness 3"],
+        "suitableCareers": ["Career 1", "Career 2", "Career 3"]
+      }
+    `;
+    
+    const textResponse = await callGrokApi(prompt);
+    
+    const jsonStart = textResponse.indexOf('{');
+    const jsonEnd = textResponse.lastIndexOf('}') + 1;
+    const jsonStr = textResponse.substring(jsonStart, jsonEnd);
+    
+    return JSON.parse(jsonStr);
+  } catch (error) {
+    console.error("Error fetching personality test results:", error);
+    
+    // Fallback data
+    return {
+      type: "Creative Problem-Solver",
+      description: "You approach problems with both creativity and analytical thinking. You enjoy finding innovative solutions to complex challenges and often think outside the box.",
+      strengths: ["Creative thinking", "Analytical skills", "Adaptability", "Quick learning", "Pattern recognition"],
+      weaknesses: ["May get bored with routine tasks", "Sometimes overthinks problems", "Can be perfectionist"],
+      suitableCareers: ["Software Developer", "UX/UI Designer", "Data Scientist", "Product Manager", "Research Scientist"]
+    };
+  }
+};
