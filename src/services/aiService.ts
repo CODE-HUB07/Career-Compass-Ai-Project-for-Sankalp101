@@ -4,8 +4,9 @@ import {
   PersonalityTestResult,
   SkillGapResult,
 } from "@/types";
- console.log('There is no Problem. WebSite Running successfully...')
-// Interfaces for AI responses
+
+console.log("There is no Problem. WebSite Running successfully...");
+
 interface AiCareerSuggestion {
   title: string;
   description: string;
@@ -65,47 +66,46 @@ Return JSON only:
 {"careers":[{"title":"","description":"","match":"","resources":[{"name":"","url":"","type":""}],"opportunities":[{"title":"","organization":"","location":"","url":"","type":"","deadline":""}],"requiredSkills":[],"salaryRange":"","growthProspects":"","educationRequirements":""}]}`;
 };
 
-// API call to OpenRouter
-const callOpenRouterApi = async (prompt: string): Promise<string> => {
-  const url = "https://openrouter.ai/api/v1/chat/completions";
-  const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
+// 🔁 Replaced OpenRouter API with RapidAPI GPT-4o-mini
+const callRapidApiGpt = async (prompt: string): Promise<string> => {
+  const url = "https://chatgpt-42.p.rapidapi.com/chat";
 
-  if (!apiKey) {
-    throw new Error("API key is missing from environment variables.");
-  }
+  const headers = {
+    "x-rapidapi-key": "b89e86197dmsh7a45920b3203713p10fd5bjsn450f89e3153d",
+    "x-rapidapi-host": "chatgpt-42.p.rapidapi.com",
+    "Content-Type": "application/json",
+  };
+
+  const body = JSON.stringify({
+    model: "gpt-4o-mini",
+    messages: [
+      {
+        role: "user",
+        content: prompt,
+      },
+    ],
+  });
 
   try {
     const response = await fetch(url, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: "openai/gpt-3.5-turbo", // Changed to a widely supported model
-        messages: [
-          { role: "system", content: "Return only valid JSON responses." },
-          { role: "user", content: prompt },
-        ],
-        max_tokens: 1024,
-        temperature: 0.1,
-      }),
+      headers,
+      body,
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      console.error("API error:", errorData);
-      throw new Error(`API error: ${response.status}`);
+      const errorText = await response.text();
+      console.error("RapidAPI Error:", errorText);
+      throw new Error(`API Error: ${response.status}`);
     }
 
-    const data = await response.json();
-    return data.choices?.[0]?.message?.content ?? "";
+    const result = await response.json();
+    return result?.choices?.[0]?.message?.content || "";
   } catch (error) {
-    console.error("Error during API request:", error);
-    throw new Error("Failed to fetch AI response");
+    console.error("Error calling RapidAPI:", error);
+    throw new Error("Failed to fetch response from RapidAPI");
   }
 };
-
 
 // Extract JSON safely
 const extractJsonFromResponse = (response: string): any => {
@@ -152,7 +152,7 @@ export const getAiCareerSuggestions = async (
 > => {
   try {
     const prompt = generateAiPrompt(userData);
-    const responseText = await callOpenRouterApi(prompt);
+    const responseText = await callRapidApiGpt(prompt);
     const parsed: AiResponse = extractJsonFromResponse(responseText);
 
     return parsed.careers.map((career, index) => ({
@@ -208,7 +208,7 @@ Interests: ${userData.interests.join(", ")}
 Return JSON only:
 {"missingSkills":[],"learningResources":[{"name":"","url":"","type":""}]}`;
 
-    const responseText = await callOpenRouterApi(prompt);
+    const responseText = await callRapidApiGpt(prompt);
     const parsed: AiSkillGapResponse = extractJsonFromResponse(responseText);
     return parsed;
   } catch (error) {
@@ -220,18 +220,13 @@ Return JSON only:
   }
 };
 
-// --- ADD THIS FUNCTION TO FIX THE ERROR ---
-/**
- * Dummy implementation for getPersonalityTest.
- * Replace this with your actual logic as needed.
- */
+// Dummy Personality Test
 export const getPersonalityTest = async (
   userData: UserData
 ): Promise<PersonalityTestResult> => {
-  // Example placeholder implementation
   return {
     personalityType: "INTJ",
     traits: ["Analytical", "Strategic", "Independent"],
-    description: "You are a strategic thinker who values logic and independence."
+    description: "You are a strategic thinker who values logic and independence.",
   };
 };
