@@ -31,6 +31,21 @@ const developers: Developer[] = [
     icon: Users
   },
   
+ 
+  {
+    name: "Yash Bajpai",
+    age: 19,
+    role: "Frontend Developer",
+    responsibilities: [
+      "Design and implement user interface using HTML, CSS, JavaScript",
+      "Ensure responsive design",
+      "Handle cross-browser compatibility",
+      "Implement UI/UX best practices"
+    ],
+    idealSkills: ["Creative thinking", "UI/UX understanding", "Proficiency in frontend tech"],
+    tagline: "Crafting beautiful, intuitive interfaces.",
+    icon: Code
+  },
   {
     name: "Varun Sharma",
     age: 19,
@@ -47,7 +62,48 @@ const developers: Developer[] = [
     tagline: "Ensuring excellence through thorough testing.",
     icon: ClipboardCheck
   },
-  
+  {
+    name: "Aryan Yadav",
+    age: 19,
+    role: "Content Writer / Copywriter",
+    responsibilities: [
+      "Write and edit website content",
+      "Create engaging headings and descriptions",
+      "Maintain consistent tone of voice",
+      "Develop blog posts and documentation"
+    ],
+    idealSkills: ["Writing", "Creativity", "Content Strategy"],
+    tagline: "Words that inspire, content that connects.",
+    icon: MessageSquare
+  },
+  {
+    name: "Bhavesh Sahu",
+    age: 19,
+    role: "Documentation Lead",
+    responsibilities: [
+      "Prepare technical documentation",
+      "Maintain API documentation",
+      "Create user manuals",
+      "Document data flow and architecture"
+    ],
+    idealSkills: ["Technical writing", "Documentation", "Organization"],
+    tagline: "Documenting success, one page at a time.",
+    icon: FileText
+  }
+  ,{
+    name: "Sibtain Raza",
+    age: 20,
+    role: "Resarch Assistant",
+    responsibilities: [
+      "Identify useful libraries, tools, and APIs",
+      "Find relevant code examples and templates",
+      "Analyze similar projects for feature ideas",
+      "Share organized findings with the team"
+    ],
+    idealSkills: ["Research", "Basic web knowledge", "Communication"],
+    tagline: "Finding the tools that power the code.",
+    icon: RssIcon
+  }
 ];
 
 const DeveloperCard = ({ developer }: { developer: Developer }) => (
