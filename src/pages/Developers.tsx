@@ -45,65 +45,8 @@ const developers: Developer[] = [
     idealSkills: ["Creative thinking", "UI/UX understanding", "Proficiency in frontend tech"],
     tagline: "Crafting beautiful, intuitive interfaces.",
     icon: Code
-  },
-  {
-    name: "Varun Sharma",
-    age: 19,
-    role: "Quality Assurance (QA) Engineer / Tester",
-    responsibilities: [
-      "Rigorously testing the application for bugs and performance issues.",
-      "Writing and executing detailed test cases to ensure a smooth user experience.",
-      "Creating and editing engaging web content that resonates with our audience.",
-      "Maintaining consistent tone and clarity across all site content and communications.",
-      "Preparing comprehensive technical and user documentation for clarity.",
-      "Documenting system architecture and user flow for future reference and development."
-    ],
-    idealSkills: ["Attention to detail", "Testing methodologies", "Problem-solving"],
-    tagline: "Ensuring excellence through thorough testing.",
-    icon: ClipboardCheck
-  },
-  {
-    name: "Aryan Yadav",
-    age: 19,
-    role: "Content Writer / Copywriter",
-    responsibilities: [
-      "Write and edit website content",
-      "Create engaging headings and descriptions",
-      "Maintain consistent tone of voice",
-      "Develop blog posts and documentation"
-    ],
-    idealSkills: ["Writing", "Creativity", "Content Strategy"],
-    tagline: "Words that inspire, content that connects.",
-    icon: MessageSquare
-  },
-  {
-    name: "Bhavesh Sahu",
-    age: 19,
-    role: "Documentation Lead",
-    responsibilities: [
-      "Prepare technical documentation",
-      "Maintain API documentation",
-      "Create user manuals",
-      "Document data flow and architecture"
-    ],
-    idealSkills: ["Technical writing", "Documentation", "Organization"],
-    tagline: "Documenting success, one page at a time.",
-    icon: FileText
   }
-  ,{
-    name: "Sibtain Raza",
-    age: 20,
-    role: "Resarch Assistant",
-    responsibilities: [
-      "Identify useful libraries, tools, and APIs",
-      "Find relevant code examples and templates",
-      "Analyze similar projects for feature ideas",
-      "Share organized findings with the team"
-    ],
-    idealSkills: ["Research", "Basic web knowledge", "Communication"],
-    tagline: "Finding the tools that power the code.",
-    icon: RssIcon
-  }
+
 ];
 
 const DeveloperCard = ({ developer }: { developer: Developer }) => (
